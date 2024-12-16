@@ -1,4 +1,8 @@
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=cyclone-github&repo=metamask_pwn&theme=gruvbox)](https://github.com/cyclone-github/)
+[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=cyclone-github&repo=metamask_pwn&theme=gruvbox)](https://github.com/cyclone-github/metamask_pwn/)
+
+[![GitHub issues](https://img.shields.io/github/issues/cyclone-github/metamask_pwn.svg)](https://github.com/cyclone-github/metamask_pwn/issues)
+[![License](https://img.shields.io/github/license/cyclone-github/metamask_pwn.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/release/cyclone-github/metamask_pwn.svg)](https://github.com/cyclone-github/metamask_pwn/releases)
 
 # metamask_pwn
 Toolset to extract and decrypt metamask vaults (wallets)
