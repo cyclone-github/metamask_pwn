@@ -14,8 +14,9 @@ Tool to extract metamask vaults to JSON and hashcat compatible formats
 ### Info:
 - Metamask JSON vaults can be decrypted with https://github.com/cyclone-github/metamask_pwn
 - Previous Metamask hashes can be cracked using hashcat -m 26600
-- New Metamask hashes can be cracked with hashcat using the custom -m 26620 kernel below
+- New Metamask hashes can be cracked with hashcat using my custom -m 26620 kernel below
   - https://github.com/cyclone-github/hashcat_26620_kernel
+- Note: metamask_extractor supports hashcat mode 26620 for convenience, but this is a third-party module written by cyclone that is not affiliated with or included in the official hashcat beta or release builds at https://github.com/hashcat/hashcat
 
 ### Metamask Vault location for Chrome extensions:
 - Linux: `/home/$USER/.config/google-chrome/Default/Local\ Extension\ Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
@@ -29,12 +30,12 @@ Tool to extract metamask vaults to JSON and hashcat compatible formats
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
 - This assumes you have Go and Git installed
-  - `git clone https://github.com/cyclone-github/metamask_pwn.git`
-  - `cd metamask_pwn`
-  - `cd metamask_extractor`
-  - `go mod init metamask_extractor`
-  - `go mod tidy`
-  - `go build -ldflags="-s -w" metamask_extractor.go`
+  - `git clone https://github.com/cyclone-github/metamask_pwn.git`  # clone repo
+  - `cd metamask_pwn/metamask_extractor`                            # enter project directory
+  - `go mod init metamask_extractor`                                # initialize Go module (skips if go.mod exists)
+  - `go mod tidy`                                                   # download dependencies
+  - `go build -ldflags="-s -w" .`                                   # compile binary in current directory
+  - `go install -ldflags="-s -w" .`                                 # compile binary and install to $GOPATH
 - Compile from source code how-to:
   - https://github.com/cyclone-github/scripts/blob/main/intro_to_go.txt
 
@@ -78,11 +79,11 @@ Vault Password: ''
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
 - This assumes you have Go and Git installed
-  - `git clone https://github.com/cyclone-github/metamask_pwn.git`
-  - `cd metamask_pwn`
-  - `cd metamask_decryptor`
-  - `go mod init metamask_decryptor`
-  - `go mod tidy`
-  - `go build -ldflags="-s -w" metamask_decryptor.go`
+  - `git clone https://github.com/cyclone-github/metamask_pwn.git`  # clone repo
+  - `cd metamask_pwn/metamask_decryptor`                            # enter project directory
+  - `go mod init metamask_decryptor`                                # initialize Go module (skips if go.mod exists)
+  - `go mod tidy`                                                   # download dependencies
+  - `go build -ldflags="-s -w" .`                                   # compile binary in current directory
+  - `go install -ldflags="-s -w" .`                                 # compile binary and install to $GOPATH
 - Compile from source code how-to:
   - https://github.com/cyclone-github/scripts/blob/main/intro_to_go.txt
