@@ -76,6 +76,15 @@ Seed Phrase:    ''
 Vault Password: ''
 ```
 
+### Install metamask_extractor:
+```
+go install github.com/cyclone-github/metamask_pwn/metamask_extractor@main
+```
+### Install metamask_decryptor:
+```
+go install github.com/cyclone-github/metamask_pwn/metamask_decryptor@main
+```
+
 ### Compile from source:
 - If you want the latest features, compiling from source is the best option since the release version may run several revisions behind the source code.
 - This assumes you have Go and Git installed
