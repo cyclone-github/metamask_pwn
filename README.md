@@ -8,6 +8,15 @@
 Toolset to extract and decrypt metamask vaults (wallets)
 - Contact me at https://forum.hashpwn.net/user/cyclone if you need help recovering your Metamask wallet password or seed phrase
 
+### Install metamask_extractor:
+```
+go install github.com/cyclone-github/metamask_pwn/metamask_extractor@main
+```
+### Install metamask_decryptor:
+```
+go install github.com/cyclone-github/metamask_pwn/metamask_decryptor@main
+```
+
 # Metamask Vault Hash Extractor
 Tool to extract metamask vaults to JSON and hashcat compatible formats
 
@@ -74,15 +83,6 @@ If the tool successfully decrypts the vault, tool will print the vault json, see
 Decrypted Vault: '{}'
 Seed Phrase:    ''
 Vault Password: ''
-```
-
-### Install metamask_extractor:
-```
-go install github.com/cyclone-github/metamask_pwn/metamask_extractor@main
-```
-### Install metamask_decryptor:
-```
-go install github.com/cyclone-github/metamask_pwn/metamask_decryptor@main
 ```
 
 ### Compile from source:
