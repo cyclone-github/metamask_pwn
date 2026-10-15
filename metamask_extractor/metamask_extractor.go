@@ -1,16 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
-	"runtime"
-	"strings"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -46,25 +41,16 @@ v0.2.1-2024-03-02
 	updated URL for hashcat 26620 kernel
 v0.2.2-2024-11-03
 	updated github repository url, https://github.com/cyclone-github/metamask_pwn/
+v0.3.0-2026-10-15
+	remove clear screen
+	improved vault extraction for nested Chrome JSON
+	open LevelDB read-only without .ldb check
 */
-
-// clear screen func
-func clearScreen() {
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		cmd := exec.Command("clear")
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-	case "windows":
-		cmd := exec.Command("cmd", "/c", "cls")
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-	}
-}
 
 // version func
 func printVersion() {
-	fmt.Fprintln(os.Stderr, "Cyclone's Metamask Vault Extractor v0.2.2-2024-11-03\nhttps://github.com/cyclone-github/metamask_pwn\n")
+	fmt.Fprintln(os.Stderr, "Cyclone's Metamask Vault Extractor v0.3.0-2026-10-15\nhttps://github.com/cyclone-github/metamask_pwn")
+	fmt.Fprintln(os.Stderr)
 }
 
 // help func
@@ -102,8 +88,6 @@ func main() {
 	helpFlag := flag.Bool("help", false, "Print usage information")
 	flag.Parse()
 
-	clearScreen()
-
 	if *versionFlag {
 		printVersion()
 		return
@@ -131,31 +115,16 @@ func main() {
 	}
 
 	info, err := os.Stat(ldbDir)
-	if os.IsNotExist(err) || !info.IsDir() {
+	if err != nil || !info.IsDir() {
 		fmt.Fprintln(os.Stderr, "Error: Provided path does not exist or is not a directory")
 		os.Exit(1)
 	}
 
-	// check if dir contains any .ldb files
-	files, err := ioutil.ReadDir(ldbDir)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to read the directory: %v\n", err)
-		os.Exit(1)
-	}
-	ldbFileFound := false
-	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".ldb") {
-			ldbFileFound = true
-			break
-		}
-	}
-	if !ldbFileFound {
-		fmt.Fprintln(os.Stderr, "Error: No .ldb files found in the provided directory. Please ensure you've specified the correct MetaMask vault directory.")
-		os.Exit(1)
-	}
-
 	// open LevelDB database
-	db, err := leveldb.OpenFile(ldbDir, &opt.Options{})
+	db, err := leveldb.OpenFile(ldbDir, &opt.Options{
+		ErrorIfMissing: true,
+		ReadOnly:       true,
+	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to open Vault:", err)
 		os.Exit(1)
@@ -167,78 +136,101 @@ func main() {
 	iter := db.NewIterator(nil, nil)
 	defer iter.Release()
 	for iter.Next() {
-		key := iter.Key()
 		value := iter.Value()
 
-		if bytes.Contains(key, []byte("data")) {
-			dataStr := strings.ReplaceAll(string(value), "\\", "")
-			if strings.Contains(dataStr, "salt") {
-				if currentData {
-					fmt.Println()
-				} else {
-					currentData = true
-					fmt.Println(" ----------------------------------------------------- ")
-					fmt.Println("|        Cyclone's Metamask Vault Hash Extractor       |")
-					fmt.Println("|  Use Metamask Vault Decryptor to decrypt JSON below  |")
-					fmt.Println("|    https://github.com/cyclone-github/metamask_pwn    |")
-					fmt.Println(" ----------------------------------------------------- ")
-				}
-
-				jsonData, ok := extractJSONData(dataStr)
-				if !ok {
-					fmt.Fprintf(os.Stderr, "Failed to extract JSON data\n")
-					continue
-				}
-
-				fmt.Println(jsonData) // print extracted JSON data
-
-				var h Hash
-				if err := json.Unmarshal([]byte(jsonData), &h); err != nil {
-					fmt.Fprintf(os.Stderr, "Failed to unmarshal JSON: %v\n", err)
-					continue
-				}
-
-				// print Metamask hash string based on format (OLD or NEW)
-				var metamaskHash string
-				if h.KeyMetadata != nil {
-					// NEW format with iteration count
-					// this may need updated once hashcat releases offical support for this new algo
-					metamaskHash = fmt.Sprintf("$metamask$%d$%s$%s$%s", h.KeyMetadata.Params.Iterations, h.Salt, h.Iv, h.VaultData)
-					fmt.Println(" -------------------------------------------------------- ")
-					fmt.Println("|           hashcat -m 26620 hash (NEW format)           |")
-					fmt.Println("| https://github.com/cyclone-github/hashcat_26620_kernel |")
-					fmt.Println(" -------------------------------------------------------- ")
-				} else {
-					// OLD format without iteration count
-					metamaskHash = fmt.Sprintf("$metamask$%s$%s$%s", h.Salt, h.Iv, h.VaultData)
-					fmt.Println(" -------------------------------------------------- ")
-					fmt.Println("|        hashcat -m 26600 hash (OLD format)        |")
-					fmt.Println(" -------------------------------------------------- ")
-				}
-				fmt.Println(metamaskHash)
-			}
+		jsonData, ok := extractJSONData(value)
+		if !ok {
+			continue
 		}
+
+		if currentData {
+			fmt.Println()
+		} else {
+			currentData = true
+			fmt.Println(" ----------------------------------------------------- ")
+			fmt.Println("|        Cyclone's Metamask Vault Hash Extractor       |")
+			fmt.Println("|  Use Metamask Vault Decryptor to decrypt JSON below  |")
+			fmt.Println("|    https://github.com/cyclone-github/metamask_pwn    |")
+			fmt.Println(" ----------------------------------------------------- ")
+		}
+
+		fmt.Println(jsonData) // print extracted JSON data
+
+		var h Hash
+		if err := json.Unmarshal([]byte(jsonData), &h); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to unmarshal JSON: %v\n", err)
+			continue
+		}
+
+		// print Metamask hash string based on format (OLD or NEW)
+		var metamaskHash string
+		if h.KeyMetadata != nil {
+			// NEW format with iteration count
+			// this may need updated once hashcat releases offical support for this new algo
+			metamaskHash = fmt.Sprintf("$metamask$%d$%s$%s$%s", h.KeyMetadata.Params.Iterations, h.Salt, h.Iv, h.VaultData)
+			fmt.Println(" -------------------------------------------------------- ")
+			fmt.Println("|           hashcat -m 26620 hash (NEW format)           |")
+			fmt.Println("| https://github.com/cyclone-github/hashcat_26620_kernel |")
+			fmt.Println(" -------------------------------------------------------- ")
+		} else {
+			// OLD format without iteration count
+			metamaskHash = fmt.Sprintf("$metamask$%s$%s$%s", h.Salt, h.Iv, h.VaultData)
+			fmt.Println(" -------------------------------------------------- ")
+			fmt.Println("|        hashcat -m 26600 hash (OLD format)        |")
+			fmt.Println(" -------------------------------------------------- ")
+		}
+		fmt.Println(metamaskHash)
+	}
+	if err := iter.Error(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to iterate Vault: %v\n", err)
 	}
 }
 
 // json extractor helper function
-func extractJSONData(value string) (string, bool) {
-	dataStart := strings.Index(value, `{"data":"`)
-	if dataStart == -1 {
+func extractJSONData(value []byte) (string, bool) {
+	return findVaultJSON(value, 0)
+}
+
+func findVaultJSON(raw []byte, depth int) (string, bool) {
+	if depth > 12 {
 		return "", false
 	}
-	braceCount := 1
-	for i := dataStart + len(`{"data":"`); i < len(value); i++ {
-		switch value[i] {
-		case '{':
-			braceCount++
-		case '}':
-			braceCount--
-			if braceCount == 0 {
-				return value[dataStart : i+1], true
+
+	var h Hash
+	if json.Unmarshal(raw, &h) == nil &&
+		h.VaultData != "" && h.Iv != "" && h.Salt != "" {
+		return string(raw), true
+	}
+
+	var obj map[string]json.RawMessage
+	if json.Unmarshal(raw, &obj) == nil {
+		if vault, ok := obj["vault"]; ok {
+			if result, ok := findVaultJSON(vault, depth+1); ok {
+				return result, true
+			}
+		}
+
+		for _, nested := range obj {
+			if result, ok := findVaultJSON(nested, depth+1); ok {
+				return result, true
 			}
 		}
 	}
+
+	var encoded string
+	if json.Unmarshal(raw, &encoded) == nil {
+		return findVaultJSON([]byte(encoded), depth+1)
+	}
+
+	var arr []json.RawMessage
+	if json.Unmarshal(raw, &arr) == nil {
+		for _, nested := range arr {
+			if result, ok := findVaultJSON(nested, depth+1); ok {
+				return result, true
+			}
+		}
+	}
+
 	return "", false
 }
 
