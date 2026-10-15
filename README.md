@@ -28,9 +28,16 @@ Tool to extract metamask vaults to JSON and hashcat compatible formats
 - Note: metamask_extractor supports hashcat mode 26620 for convenience, but this is a third-party module written by cyclone that is not affiliated with or included in the official hashcat beta or release builds at https://github.com/hashcat/hashcat
 
 ### Metamask Vault location for Chrome extensions:
-- Linux: `/home/$USER/.config/google-chrome/Default/Local\ Extension\ Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
-- Mac: `Library>Application Support>Google>Chrome>Default>Local Extension Settings>nkbihfbeogaeaoehlefnkodbefgpgknn`
-- Windows `C:\Users\$USER\AppData\Local\Google\Chrome\User Data\Default\Local Extension Settings\nkbihfbeogaeaoehlefnkodbefgpgknn`
+- Linux: `/home/$USER/.config/google-chrome/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
+- Mac: `~/Library/Application Support/Google/Chrome/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
+- Windows: `%LOCALAPPDATA%\Google\Chrome\User Data\Default\Local Extension Settings\nkbihfbeogaeaoehlefnkodbefgpgknn\`
+
+### Metamask Vault location for Brave extensions:
+- Linux: `/home/$USER/.config/BraveSoftware/Brave-Browser/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
+- Mac: `~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn/`
+- Windows: `%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data\Default\Local Extension Settings\nkbihfbeogaeaoehlefnkodbefgpgknn\`
+
+**Note:** For additional browser profiles, replace `Default` with `Profile 1`, `Profile 2`, etc. The active profile directory can be identified using `chrome://version` or `brave://version`.
 
 ### Usage:
 - Linux: `./metamask_extractor.bin {metamask_vault_dir}`
@@ -68,7 +75,7 @@ Decrypted: 0/1  5430.89 h/s     00h:01m:00s
 ### Info:
 - Supports previous Metamask vaults as well as new vaults with "KeyMetadata" which have dynamic iterations
 - If you need help extracting Metamask vaults, use `Metamask Extractor` https://github.com/cyclone-github/metamask_pwn
-- _`Metamask Vault Decryptor` is superseded by hashcat, however, `Metamask Vault Decryptor` also displays the seed phrase alongside the vault password, which hashcat does not currently support_
+- _`Metamask Vault Decryptor` is superseded by hashcat, however, `Metamask Vault Decryptor` also displays the seed phrase alongside the vault password, which hashcat does not support_
 
 ### Example vaults supported:
 - Old vault format: `{"data": "","iv": "","salt": ""}`
